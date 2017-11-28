@@ -22,6 +22,7 @@ func main() {
 	e.Use(middleware.Gzip())
 	e.Use(middleware.Recover())
 	e.GET("/api/release", handle.GetRelease)
+	e.GET("/download", handle.GetDownloadUrl)
 	utils.Open(Host)
 	port := ":" + convert.ToString(Port)
 	e.Logger.Fatal(e.Start(port))

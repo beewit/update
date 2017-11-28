@@ -74,6 +74,14 @@ func GetRelease(c echo.Context) error {
 	return utils.SuccessNullMsg(c, rel)
 }
 
+func GetDownloadUrl(c echo.Context)error  {app := c.FormValue("app")
+	rel, err := getRelease(app)
+	if err != nil {
+		return utils.ErrorNull(c, fmt.Sprintf("获取更新版本失败，原因：%s", err.Error()))
+	}
+	return utils.Redirect(c, rel.Assets[0].Url)
+}
+
 func getRelease(app string) (rel Release, err error) {
 	var apiUrl string
 	switch app {
