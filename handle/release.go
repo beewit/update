@@ -8,6 +8,12 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"github.com/beewit/update/global"
+	"time"
+	"github.com/beewit/beekit/utils/convert"
+
+	"strings"
+	"encoding/base64"
 )
 
 const (
@@ -77,7 +83,7 @@ func GetRelease(c echo.Context) error {
 }
 
 func GetDownloadUrl(c echo.Context) error {
-	if utils.IsWechatBrowser(c.Request().UserAgent()){
+	if utils.IsWechatBrowser(c.Request().UserAgent()) {
 		return c.File("app/page/index.html")
 	}
 	app := c.FormValue("app")
@@ -85,7 +91,36 @@ func GetDownloadUrl(c echo.Context) error {
 	if err != nil {
 		return utils.ErrorNull(c, fmt.Sprintf("获取更新版本失败，原因：%s", err.Error()))
 	}
+	if len(rel.Assets) <= 0 {
+		return utils.ErrorNull(c, "下载失败，应用的下载地址未找到！")
+	}
+	go func() {
+		m := map[string]interface{}{}
+		m["id"] = utils.ID()
+		m["ct_time"] = utils.CurrentTime()
+		m["type"] = app
+		m["user_agent"] = c.Request().UserAgent()
+		m["ct_ip"] = c.RealIP()
+		_, err = global.DB.InsertMap("download_logs", m)
+		if err != nil {
+			global.Log.Error(err.Error())
+		}
+	}()
 	return utils.Redirect(c, rel.Assets[0].Url)
+}
+
+func GetDownloadQrCode(c echo.Context) error {
+	app := c.FormValue("app")
+	if app == "" {
+		return utils.ResultHtml(c, "下载类型参数错误")
+	}
+	base64Img, err := utils.CreateQrCode(fmt.Sprintf("http://update.9ee3.com/download?app=%s&u=%s", app, convert.ToString(time.Now().UnixNano())))
+	if err != nil {
+		return utils.ResultHtml(c, "生成二维码失败")
+	}
+	base64Img = strings.Replace(base64Img, "data:image/png;base64,", "", -1)
+	dist, _ := base64.StdEncoding.DecodeString(base64Img)
+	return c.Stream(http.StatusOK, "image/jpeg", strings.NewReader(string(dist)))
 }
 
 func getRelease(app string) (rel Release, err error) {

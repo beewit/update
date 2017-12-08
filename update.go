@@ -1,20 +1,12 @@
 package main
 
 import (
+	"github.com/beewit/beekit/utils"
+	"github.com/beewit/beekit/utils/convert"
+	"github.com/beewit/update/global"
+	"github.com/beewit/update/handle"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"github.com/beewit/beekit/utils/convert"
-	"github.com/beewit/beekit/utils"
-	"fmt"
-	"github.com/beewit/beekit/conf"
-	"github.com/beewit/update/handle"
-)
-
-var (
-	CFG  = conf.New("config.json")
-	IP   = CFG.Get("server.ip")
-	Port = CFG.Get("server.port")
-	Host = fmt.Sprintf("http://%v:%v", IP, Port)
 )
 
 func main() {
@@ -24,7 +16,8 @@ func main() {
 	e.Static("/app", "app")
 	e.GET("/api/release", handle.GetRelease)
 	e.GET("/download", handle.GetDownloadUrl)
-	utils.Open(Host)
-	port := ":" + convert.ToString(Port)
+	e.GET("/download/qrcode", handle.GetDownloadQrCode)
+	utils.Open(global.Host)
+	port := ":" + convert.ToString(global.Port)
 	e.Logger.Fatal(e.Start(port))
 }
