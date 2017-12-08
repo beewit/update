@@ -21,6 +21,7 @@ func main() {
 	e := echo.New()
 	e.Use(middleware.Gzip())
 	e.Use(middleware.Recover())
+	e.Static("/app", "app")
 	e.GET("/api/release", handle.GetRelease)
 	e.GET("/download", handle.GetDownloadUrl)
 	utils.Open(Host)

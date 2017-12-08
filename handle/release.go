@@ -7,18 +7,20 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"net/http"
-	"github.com/pkg/errors"
 	"net/url"
 )
 
 const (
-	tagFmt             = "v%d.%d.%d"
-	API_SPREAD_URL     = "https://gitee.com/api/v5/repos/beewit/spread/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_APP_URL = "https://gitee.com/api/v5/repos/beewit/app/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_DB_URL  = "https://gitee.com/api/v5/repos/beewit/spread-db/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	SPREAD             = "spread"
-	SPREAD_APP         = "spread-app"
-	SPREAD_DB          = "spread-db"
+	tagFmt                 = "v%d.%d.%d"
+	API_SPREAD_TEMP_URL    = "https://gitee.com/api/v5/repos/beewit/%s/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
+	API_SPREAD_URL         = "https://gitee.com/api/v5/repos/beewit/spread/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
+	API_SPREAD_APP_URL     = "https://gitee.com/api/v5/repos/beewit/app/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
+	API_SPREAD_DB_URL      = "https://gitee.com/api/v5/repos/beewit/spread-db/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
+	API_SPREAD_INSTALL_URL = "https://gitee.com/api/v5/repos/beewit/spread-install/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
+	SPREAD                 = "spread"
+	SPREAD_APP             = "spread-app"
+	SPREAD_INSTALL         = "spread-install"
+	SPREAD_DB              = "spread-db"
 )
 
 type Version struct {
@@ -74,7 +76,11 @@ func GetRelease(c echo.Context) error {
 	return utils.SuccessNullMsg(c, rel)
 }
 
-func GetDownloadUrl(c echo.Context)error  {app := c.FormValue("app")
+func GetDownloadUrl(c echo.Context) error {
+	if utils.IsWechatBrowser(c.Request().UserAgent()){
+		return c.File("app/page/index.html")
+	}
+	app := c.FormValue("app")
 	rel, err := getRelease(app)
 	if err != nil {
 		return utils.ErrorNull(c, fmt.Sprintf("获取更新版本失败，原因：%s", err.Error()))
@@ -94,8 +100,11 @@ func getRelease(app string) (rel Release, err error) {
 	case SPREAD_DB:
 		apiUrl = API_SPREAD_DB_URL
 		break
+	case SPREAD_INSTALL:
+		apiUrl = API_SPREAD_INSTALL_URL
+		break
 	default:
-		err = errors.New("app不存在")
+		apiUrl = fmt.Sprintf(API_SPREAD_TEMP_URL, app)
 		return
 	}
 	resp, err := http.Get(apiUrl)
