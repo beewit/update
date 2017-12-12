@@ -14,6 +14,7 @@ import (
 
 	"strings"
 	"encoding/base64"
+	"github.com/beewit/beekit/utils/enum"
 )
 
 const (
@@ -86,6 +87,7 @@ func GetDownloadUrl(c echo.Context) error {
 	if utils.IsWechatBrowser(c.Request().UserAgent()) {
 		return c.File("app/page/index.html")
 	}
+	i := c.FormValue("i")
 	app := c.FormValue("app")
 	rel, err := getRelease(app)
 	if err != nil {
@@ -95,6 +97,7 @@ func GetDownloadUrl(c echo.Context) error {
 		return utils.ErrorNull(c, "下载失败，应用的下载地址未找到！")
 	}
 	go func() {
+		//添加下载记录
 		m := map[string]interface{}{}
 		m["id"] = utils.ID()
 		m["ct_time"] = utils.CurrentTime()
@@ -106,15 +109,30 @@ func GetDownloadUrl(c echo.Context) error {
 			global.Log.Error(err.Error())
 		}
 	}()
+	if i != "" && utils.IsValidNumber(i) {
+		go func() {
+			//查询分享id是否存在用户
+			rows, _ := global.DB.Query("SELECT id FROM account WHERE id=? AND status=?", i, enum.NORMAL)
+			if len(rows) <= 0 {
+				global.Log.Error("未找到此用户【%s】", i)
+				return
+			}
+			//添加下载记录关系
+			sql := "REPLACE INTO download_access_log(id,ip,account_id,ct_time)VALUES(?,?,?,?)"
+			global.DB.Insert(sql, utils.ID(), c.RealIP(), i, utils.CurrentTime())
+		}()
+	}
 	return utils.Redirect(c, rel.Assets[0].Url)
 }
 
 func GetDownloadQrCode(c echo.Context) error {
+	i := c.FormValue("i")
 	app := c.FormValue("app")
 	if app == "" {
 		return utils.ResultHtml(c, "下载类型参数错误")
 	}
-	base64Img, err := utils.CreateQrCode(fmt.Sprintf("http://update.9ee3.com/download?app=%s&u=%s", app, convert.ToString(time.Now().UnixNano())))
+	base64Img, err := utils.CreateQrCode(fmt.Sprintf("http://update.9ee3.com/download?app=%s&i=%s&u=%s",
+		app, i, convert.ToString(time.Now().UnixNano())))
 	if err != nil {
 		return utils.ResultHtml(c, "生成二维码失败")
 	}
