@@ -1,19 +1,21 @@
 package handle
 
 import (
-	"github.com/labstack/echo"
-	"github.com/beewit/beekit/utils"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"encoding/json"
 	"net/http"
 	"net/url"
-	"github.com/beewit/update/global"
 	"time"
-	"github.com/beewit/beekit/utils/convert"
 
-	"strings"
+	"github.com/beewit/beekit/utils"
+	"github.com/beewit/beekit/utils/convert"
+	"github.com/beewit/update/global"
+	"github.com/labstack/echo"
+
 	"encoding/base64"
+	"strings"
+
 	"github.com/beewit/beekit/utils/enum"
 )
 
@@ -84,10 +86,23 @@ func GetRelease(c echo.Context) error {
 }
 
 func GetDownloadUrl(c echo.Context) error {
+	i := c.FormValue("i")
+	if i != "" && utils.IsValidNumber(i) {
+		go func() {
+			//查询分享id是否存在用户
+			rows, _ := global.DB.Query("SELECT id FROM account WHERE id=? AND status=?", i, enum.NORMAL)
+			if len(rows) <= 0 {
+				global.Log.Error("未找到此用户【%s】", i)
+				return
+			}
+			//添加下载记录关系
+			sql := "REPLACE INTO download_access_log(id,ip,account_id,ct_time)VALUES(?,?,?,?)"
+			global.DB.Insert(sql, utils.ID(), c.RealIP(), i, utils.CurrentTime())
+		}()
+	}
 	if utils.IsWechatBrowser(c.Request().UserAgent()) {
 		return c.File("app/page/index.html")
 	}
-	i := c.FormValue("i")
 	app := c.FormValue("app")
 	rel, err := getRelease(app)
 	if err != nil {
@@ -109,19 +124,6 @@ func GetDownloadUrl(c echo.Context) error {
 			global.Log.Error(err.Error())
 		}
 	}()
-	if i != "" && utils.IsValidNumber(i) {
-		go func() {
-			//查询分享id是否存在用户
-			rows, _ := global.DB.Query("SELECT id FROM account WHERE id=? AND status=?", i, enum.NORMAL)
-			if len(rows) <= 0 {
-				global.Log.Error("未找到此用户【%s】", i)
-				return
-			}
-			//添加下载记录关系
-			sql := "REPLACE INTO download_access_log(id,ip,account_id,ct_time)VALUES(?,?,?,?)"
-			global.DB.Insert(sql, utils.ID(), c.RealIP(), i, utils.CurrentTime())
-		}()
-	}
 	return utils.Redirect(c, rel.Assets[0].Url)
 }
 
