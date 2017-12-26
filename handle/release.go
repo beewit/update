@@ -96,8 +96,7 @@ func GetDownloadUrl(c echo.Context) error {
 				return
 			}
 			//添加下载记录关系
-			sql := "REPLACE INTO download_access_log(id,ip,account_id,ct_time)VALUES(?,?,?,?)"
-			global.DB.Insert(sql, utils.ID(), c.RealIP(), i, utils.CurrentTime())
+			insertDownloadAccessLog(i,c.RealIP())
 		}()
 	}
 	if utils.IsWechatBrowser(c.Request().UserAgent()) {
@@ -125,6 +124,37 @@ func GetDownloadUrl(c echo.Context) error {
 		}
 	}()
 	return utils.Redirect(c, rel.Assets[0].Url)
+}
+
+func insertDownloadAccessLog(accId, ip string) {
+	m := queryDownloadAccessLog(accId)
+	if m != nil {
+		sql := "UPDATE download_access_log SET ip=?,ct_time=? WHERE id=?"
+		_, err := global.DB.Update(sql, ip, utils.CurrentTime(), m["id"])
+		if err != nil {
+			global.Log.Error(err.Error())
+		}
+	} else {
+
+		sql := "INSERT INTO download_access_log(id,ip,account_id,ct_time)VALUES(?,?,?,?)"
+		_, err := global.DB.Insert(sql, utils.ID(), ip, accId, utils.CurrentTime())
+		if err != nil {
+			global.Log.Error(err.Error())
+		}
+	}
+}
+
+func queryDownloadAccessLog(accId string) map[string]interface{} {
+	sql := "SELECT * FROM download_access_log WHERE account_id=? LIMIT 1"
+	rows, err := global.DB.Query(sql, accId)
+	if err != nil {
+		global.Log.Error(err.Error())
+		return nil
+	}
+	if len(rows) != 1 {
+		return nil
+	}
+	return rows[0]
 }
 
 func GetDownloadQrCode(c echo.Context) error {
