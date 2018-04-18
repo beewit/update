@@ -14,6 +14,7 @@ func main() {
 	e.Use(middleware.Gzip())
 	e.Use(middleware.Recover())
 	e.Static("/app", "app")
+	e.File("MP_verify_3Z6AKFClzM8nQt3q.txt", "app/page/MP_verify_3Z6AKFClzM8nQt3q.txt")
 	e.GET("/api/release", handle.GetRelease)
 	e.GET("/download", handle.GetDownloadUrl)
 	e.GET("/download/qrcode", handle.GetDownloadQrCode)
