@@ -26,9 +26,11 @@ const (
 	API_SPREAD_APP_URL     = "https://gitee.com/api/v5/repos/beewit/app/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
 	API_SPREAD_DB_URL      = "https://gitee.com/api/v5/repos/beewit/spread-db/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
 	API_SPREAD_INSTALL_URL = "https://gitee.com/api/v5/repos/beewit/spread-install/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
+	API_SPREAD_PC_URL      = "https://gitee.com/api/v5/repos/beewit/spread-pc-app/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
 	SPREAD                 = "spread"
 	SPREAD_APP             = "spread-app"
 	SPREAD_INSTALL         = "spread-install"
+	SPREAD_PC              = "spread-pc"
 	SPREAD_DB              = "spread-db"
 )
 
@@ -96,7 +98,7 @@ func GetDownloadUrl(c echo.Context) error {
 				return
 			}
 			//添加下载记录关系
-			insertDownloadAccessLog(i,c.RealIP())
+			insertDownloadAccessLog(i, c.RealIP())
 		}()
 	}
 	if utils.IsWechatBrowser(c.Request().UserAgent()) {
@@ -181,6 +183,9 @@ func getRelease(app string) (rel Release, err error) {
 		break
 	case SPREAD_APP:
 		apiUrl = API_SPREAD_APP_URL
+		break
+	case SPREAD_PC:
+		apiUrl = API_SPREAD_PC_URL
 		break
 	case SPREAD_DB:
 		apiUrl = API_SPREAD_DB_URL
