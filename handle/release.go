@@ -21,19 +21,26 @@ import (
 
 const (
 	tagFmt                 = "v%d.%d.%d"
-	API_SPREAD_TEMP_URL    = "https://gitee.com/api/v5/repos/beewit/%s/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_URL         = "https://gitee.com/api/v5/repos/beewit/spread/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_APP_URL     = "https://gitee.com/api/v5/repos/beewit/app/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_DB_URL      = "https://gitee.com/api/v5/repos/beewit/spread-db/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_INSTALL_URL = "https://gitee.com/api/v5/repos/beewit/spread-install/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_PC_URL      = "https://gitee.com/api/v5/repos/beewit/spread-pc-app/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
-	API_SPREAD_EXE_URL     = "https://gitee.com/api/v5/repos/beewit/spread-pc-exe/releases/latest?access_token=kdw2HGxYpTzVrdKpbQbV"
+	API_SPREAD_TEMP_URL    = "https://gitee.com/api/v5/repos/beewit/%s/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+	API_SPREAD_URL         = "https://gitee.com/api/v5/repos/beewit/spread/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+	API_SPREAD_APP_URL     = "https://gitee.com/api/v5/repos/beewit/app/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+	API_SPREAD_DB_URL      = "https://gitee.com/api/v5/repos/beewit/spread-db/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+	API_SPREAD_INSTALL_URL = "https://gitee.com/api/v5/repos/beewit/spread-install/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+	API_SPREAD_PC_URL      = "https://gitee.com/api/v5/repos/beewit/spread-pc-app/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+	API_SPREAD_EXE_URL     = "https://gitee.com/api/v5/repos/beewit/spread-pc-exe/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+
+	API_SMARTFORM_INSTALL_URL      = "https://gitee.com/api/v5/repos/beewit/SmartForm-Install/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+	API_SMARTFORM_URL     = "https://gitee.com/api/v5/repos/beewit/SmartForm/releases/latest?access_token=c76dfb70ee35a12b1b11544b27fd1dc4"
+
+
 	SPREAD                 = "spread"
 	SPREAD_APP             = "spread-app"
 	SPREAD_INSTALL         = "spread-install"
 	SPREAD_PC              = "spread-pc"
 	SPREAD_PC_EXE          = "spread-pc-exe"
 	SPREAD_DB              = "spread-db"
+	SMARTFORM_INSTALL      = "smartForm-install" //安装程序
+	SMARTFORM              = "smartForm"         //更新压缩包
 )
 
 type Version struct {
@@ -197,6 +204,12 @@ func getRelease(app string) (rel Release, err error) {
 		break
 	case SPREAD_INSTALL:
 		apiUrl = API_SPREAD_INSTALL_URL
+		break
+	case SMARTFORM:
+		apiUrl = API_SMARTFORM_URL
+		break
+	case SMARTFORM_INSTALL:
+		apiUrl = API_SMARTFORM_INSTALL_URL
 		break
 	default:
 		apiUrl = fmt.Sprintf(API_SPREAD_TEMP_URL, app)
